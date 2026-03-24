@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#7c1d4a">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>Cash Flow Summary</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/styles.css?v=4" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <style>
+        /* Page tokens (tables / sections) — base layout from /styles.css */
+        :root {
+            --primary: #be185d;
+            --primary-light: #ec4899;
+            --primary-dark: #5c1538;
+            --success: #059669;
+            --success-light: #34d399;
+            --danger: #dc2626;
+            --danger-light: #fca5a5;
+            --warning: #d97706;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-600: #64748b;
+            --neutral-700: #475569;
+            --neutral-800: #1e293b;
+            --radius: 14px;
+            --shadow: 0 4px 24px rgba(92, 21, 56, 0.07), 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-hover: 0 12px 36px rgba(124, 29, 74, 0.1), 0 4px 12px rgba(0,0,0,0.05);
+        }
+        @media (max-width: 640px) {
+            .container { padding: 0.75rem 0.75rem 1.5rem; }
+            .action-row { gap: 0.4rem; }
+            .section-card { padding: 1rem 1rem; }
+            .section-header-row { gap: 0.75rem; }
+            .section-header-row .section-img-upload { flex-basis: 100%; margin-left: 0; }
+            .section-img-upload { padding: 0.5rem 0.75rem; gap: 0.45rem; }
+            .section-img-upload .bank-select-wrap { min-width: 120px; width: 160px; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 0.6rem 0.6rem 1.25rem; }
+            .section-card { padding: 0.85rem 0.85rem; }
+            .nav-btn { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
+            .action-btn { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+            .section-header-row { flex-direction: column; align-items: stretch; gap: 0.65rem; }
+            .section-img-upload { padding: 0.5rem 0.65rem; font-size: 0.75rem; gap: 0.4rem; width: 100%; box-sizing: border-box; }
+            .section-img-upload .bank-select-wrap { min-width: 0; width: 100%; max-width: none; flex: 1 1 140px; }
+            .section-img-upload .img-paste-btn, .section-img-upload .img-submit-btn, .section-img-upload .img-delete-btn { padding: 0.3rem 0.55rem; font-size: 0.74rem; min-height: 36px; }
+            .section-img-upload .bank-quick-select { gap: 0.22rem; margin-top: 0.4rem; }
+            .section-img-upload .bank-quick-btn { padding: 0.22rem 0.38rem; font-size: 0.66rem; min-height: 26px; }
+            .section-title { font-size: 0.95rem; }
+            h1 { font-size: 1.2rem; }
+        }
+        @media (max-width: 360px) {
+            .nav-btn .icon { display: none; }
+            .nav-btn { padding: 0.3rem 0.5rem; font-size: 0.7rem; }
+            .section-img-upload { padding: 0.45rem 0.55rem; gap: 0.35rem; }
+            .section-img-upload .bank-quick-btn { font-size: 0.6rem; padding: 0.18rem 0.32rem; min-height: 24px; }
+            .section-img-upload .img-paste-btn, .section-img-upload .img-submit-btn, .section-img-upload .img-delete-btn { padding: 0.28rem 0.5rem; font-size: 0.7rem; }
+        }
+        header { text-align: center; margin-bottom: 1.5rem; }
+        h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); line-height: 1.3; }
+        @media (min-width: 768px) { h1 { font-size: 1.75rem; } }
+        .subtitle { font-size: 0.9rem; color: var(--neutral-600); margin-top: 0.4rem; }
+        .date-badge {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: rgba(255,255,255,0.95);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border: 1px solid var(--neutral-200);
+            box-shadow: var(--shadow);
+            letter-spacing: 0.02em;
+        }
+        .action-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 142px), 1fr));
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+        @media (min-width: 560px) {
+            .action-row { display: flex; flex-wrap: wrap; justify-content: center; }
+        }
+        .action-btn {
+            padding: 0.5rem 0.85rem;
+            min-height: 44px;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-btn.refresh {
+            background: var(--neutral-50);
+            color: var(--neutral-700);
+            border-color: var(--neutral-200);
+        }
+        .action-btn.refresh:hover { background: var(--neutral-100); transform: translateY(-1px); }
+        .action-btn.save {
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+            color: white;
+            border-color: var(--success);
+        }
+        .action-btn.save:hover { opacity: 0.95; transform: translateY(-1px); }
+        .cf-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -0.25rem;
+            border-radius: var(--radius);
+        }
+        .cf-table {
+            width: 100%;
+            min-width: 520px;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            background: #fff;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--neutral-200);
+        }
+        .cf-table tbody tr:hover:not(.row-total-bank):not(.row-total-gateway):not(.row-total-user):not(.row-extra) { background: rgba(241,245,249,1); transition: background 0.15s ease; }
+        .cf-table th, .cf-table td {
+            padding: 0.6rem 0.9rem;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 0.9rem;
+        }
+        .cf-table thead th { border-bottom: 2px solid rgba(148, 163, 184, 0.5); }
+        .cf-table th {
+            background: linear-gradient(180deg, #fefce8 0%, #fef9c3 50%, #fef08a 100%) !important;
+            color: var(--neutral-800);
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        .cf-table .col-sno { width: 42px; min-width: 42px; text-align: center; font-weight: 600; color: var(--neutral-600); font-size: 0.88rem; }
+        .cf-table .col-name { min-width: 140px; text-align: center; font-weight: 500; }
+        .cf-table .col-name-with-del { display: flex; align-items: center; gap: 0.4rem; justify-content: center; }
+        .cf-table .col-name-with-del input,
+        .cf-table .col-name-with-del span { flex: 1; min-width: 0; }
+        .cf-table .col-amount,
+        .cf-table .col-note,
+        .cf-table .col-net-balance { width: 135px; min-width: 120px; text-align: center; }
+        .cf-table .col-amount { font-variant-numeric: tabular-nums; }
+        .cf-table .col-note { font-size: 0.88rem; color: var(--neutral-600); }
+        .cf-table .col-net-balance { font-variant-numeric: tabular-nums; font-weight: 500; color: #166534; }
+        .th-full { display: inline; }
+        .th-short { display: none; }
+        @media (max-width: 640px) {
+            .th-full { display: none; }
+            .th-short { display: inline; }
+            .cf-table .col-name { min-width: 90px; }
+            .cf-table .col-amount, .cf-table .col-note, .cf-table .col-net-balance, .cf-table .col-use, .cf-table .col-useable { min-width: 100px; width: 108px; }
+            .cf-table { font-size: 0.8rem; min-width: 420px; }
+            .cf-table th, .cf-table td { padding: 0.5rem 0.6rem; }
+            .cf-table input { font-size: 0.82rem; padding: 0.35rem 0.5rem; min-width: 0; }
+        }
+        .cf-table input[type="text"] {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+            padding: 0.4rem 0.55rem;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            background: #fafafa;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .cf-table input:hover:not(:disabled) { border-color: var(--primary-light); background: #fff; }
+        .cf-table input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(251,113,133,0.15); background: #fff; }
+        .cf-table .row-total-bank {
+            background: linear-gradient(135deg, rgba(187,247,208,0.85) 0%, rgba(134,239,172,0.6) 100%) !important;
+            color: #166534;
+            font-weight: 700;
+            font-size: 0.92rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        .cf-table .row-extra {
+            background: linear-gradient(135deg, rgba(187,247,208,0.85) 0%, rgba(134,239,172,0.6) 100%) !important;
+            color: #166534;
+            font-weight: 700;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        .cf-table .row-total-bank td, .cf-table .row-total-gateway td, .cf-table .row-total-user td, .cf-table .row-extra td { padding: 0.75rem 1rem; border: 1px solid rgba(148, 163, 184, 0.4); }
+        .cf-table input.net-balance-inp { background: linear-gradient(135deg, rgba(187,247,208,0.4) 0%, rgba(134,239,172,0.25) 100%); font-weight: 600; color: #15803d; cursor: default; border-color: rgba(34,197,94,0.2); box-shadow: inset 0 1px 1px rgba(34,197,94,0.08); }
+        .cf-table input.net-balance-total { font-weight: 700; }
+        .cf-table .col-amount, .cf-table .col-note, .cf-table .col-net-balance, .cf-table .col-use, .cf-table .col-useable { overflow: visible; }
+        .cf-table .col-use { width: 75px; min-width: 70px; text-align: center; }
+        .cf-table .col-useable { width: 140px; min-width: 120px; text-align: center; font-variant-numeric: tabular-nums; }
+        .cf-table .useable-check-wrap { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.8rem; margin: 0; white-space: nowrap; }
+        .cf-table .useable-check-wrap input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        @media (max-width: 640px) {
+            .cf-table .row-total-bank .col-name, .cf-table .row-total-gateway .col-name, .cf-table .row-total-user .col-name { font-size: 0.88rem; }
+        }
+        .cf-table .row-total-gateway { background: linear-gradient(135deg, rgba(219,234,254,0.9) 0%, rgba(191,219,254,0.7) 100%) !important; color: #1e40af; font-weight: 700; font-size: 0.92rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+        .cf-table .row-total-user { background: linear-gradient(135deg, rgba(253,242,248,0.95) 0%, rgba(251,207,232,0.5) 100%) !important; color: var(--primary-dark); font-weight: 700; font-size: 0.9rem; box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+        .cf-table .row-other { background: rgba(241,245,249,0.9) !important; color: var(--neutral-800); font-size: 0.88rem; }
+        .section-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 1.25rem 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--neutral-200);
+            transition: all 0.25s ease;
+            overflow-x: hidden;
+        }
+        .section-card:hover { box-shadow: var(--shadow-hover); }
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 0;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(251,113,133,0.06) 0%, rgba(251,207,232,0.12) 100%);
+            border-radius: 12px;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(251,113,133,0.2);
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(251,113,133,0.08);
+            transition: all 0.2s ease;
+        }
+        .section-title:hover { box-shadow: 0 4px 12px rgba(251,113,133,0.12); }
+        .cf-table .note-red { color: var(--danger); font-weight: 600; }
+        .cf-table .note-yellow { background: #fef08a; padding: 0.2rem 0.5rem; border-radius: 4px; }
+        .cf-table .btn-del {
+            padding: 0.28rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(220,38,38,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220,38,38,0.25);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cf-table .btn-del:hover { background: rgba(220,38,38,0.18); }
+        .add-row-btn {
+            margin-top: 0.5rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.82rem;
+            background: rgba(251,113,133,0.08);
+            color: var(--primary-dark);
+            border: 1px dashed rgba(251,113,133,0.35);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .add-row-btn:hover { background: rgba(251,113,133,0.15); border-color: var(--primary); }
+        .toast {
+            position: fixed;
+            bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.65rem 1.25rem;
+            max-width: min(92vw, 340px);
+            background: linear-gradient(135deg, var(--success), var(--success-light));
+            color: white;
+            font-weight: 600;
+            border-radius: var(--radius);
+            font-size: 0.85rem;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 6px 20px rgba(5,150,105,0.35);
+        }
+        .toast.toast-error { background: var(--danger); }
+        .toast.show { display: block; animation: toastIn 0.25s ease; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(8px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @media (max-width: 480px) { .toast { bottom: max(1rem, env(safe-area-inset-bottom, 0px)); font-size: 0.82rem; padding: 0.55rem 1rem; } }
+        .grand-total-box {
+            margin-top: 1.25rem;
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, var(--success-light) 0%, var(--success) 100%);
+            border-radius: var(--radius);
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #064e3b;
+            text-align: center;
+            border: 1px solid rgba(5,150,105,0.2);
+            word-break: break-word;
+            box-shadow: var(--shadow);
+            letter-spacing: 0.02em;
+        }
+        @media (max-width: 480px) { .grand-total-box { font-size: 1rem; padding: 0.7rem 0.85rem; } }
+        .section-header-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(251,113,133,0.12);
+            min-width: 0;
+        }
+        .section-img-upload {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.55rem;
+            cursor: pointer;
+            margin-left: auto;
+            max-width: 100%;
+            min-width: 0;
+            padding: 0.6rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.9);
+            color: var(--neutral-700);
+            border: 1px solid rgba(251,113,133,0.2);
+            border-radius: 14px;
+            transition: all 0.25s ease;
+            min-width: 0;
+            box-shadow: 0 2px 8px rgba(251,113,133,0.08), 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .section-img-upload:hover { background: rgba(255,255,255,0.98); border-color: rgba(251,113,133,0.35); color: var(--primary-dark); box-shadow: 0 4px 14px rgba(251,113,133,0.12); }
+        .section-img-upload.dragover { border-color: var(--primary); background: rgba(251,113,133,0.08); }
+        .section-img-upload input[type="file"] { display: none; }
+        .section-img-upload .img-paste-btn {
+            padding: 0.38rem 0.7rem;
+            font-size: 0.78rem;
+            min-height: 32px;
+            font-weight: 600;
+            border: 1px solid rgba(5,150,105,0.35);
+            border-radius: 10px;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(5,150,105,0.06) 0%, rgba(5,150,105,0.1) 100%);
+            color: var(--success);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(5,150,105,0.08);
+        }
+        .section-img-upload .img-paste-btn:hover { background: linear-gradient(135deg, rgba(5,150,105,0.12) 0%, rgba(5,150,105,0.18) 100%); box-shadow: 0 2px 6px rgba(5,150,105,0.15); transform: translateY(-1px); }
+        .section-img-upload .img-submit-btn {
+            padding: 0.38rem 0.7rem;
+            font-size: 0.78rem;
+            min-height: 32px;
+            font-weight: 600;
+            border: 1px solid rgba(251,113,133,0.35);
+            border-radius: 10px;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(251,113,133,0.06) 0%, rgba(251,113,133,0.12) 100%);
+            color: var(--primary-dark);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(251,113,133,0.08);
+        }
+        .section-img-upload .img-submit-btn:hover { background: linear-gradient(135deg, rgba(251,113,133,0.12) 0%, rgba(251,113,133,0.2) 100%); box-shadow: 0 2px 6px rgba(251,113,133,0.12); transform: translateY(-1px); }
+        .section-img-upload .img-submit-btn:disabled { opacity: 0.5; cursor: wait; }
+        .section-img-upload .img-delete-btn {
+            padding: 0.38rem 0.7rem;
+            font-size: 0.78rem;
+            min-height: 32px;
+            font-weight: 600;
+            border: 1px solid rgba(220,38,38,0.35);
+            border-radius: 10px;
+            cursor: pointer;
+            background: linear-gradient(135deg, rgba(220,38,38,0.05) 0%, rgba(220,38,38,0.1) 100%);
+            color: var(--danger);
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(220,38,38,0.06);
+        }
+        .section-img-upload .img-delete-btn:hover { background: linear-gradient(135deg, rgba(220,38,38,0.1) 0%, rgba(220,38,38,0.18) 100%); box-shadow: 0 2px 6px rgba(220,38,38,0.12); transform: translateY(-1px); }
+        .section-img-upload .bank-select-wrap {
+            position: relative;
+            display: inline-block;
+            min-width: 140px;
+            width: 180px;
+            flex-shrink: 0;
+        }
+        .section-img-upload .bank-select-wrap input.bank-dropdown {
+            width: 100%;
+            padding: 0.45rem 2.25rem 0.45rem 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+            border: 1px solid rgba(251,113,133,0.25);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--neutral-800);
+            font-family: inherit;
+            cursor: text;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .section-img-upload .bank-select-wrap input.bank-dropdown::-webkit-calendar-picker-indicator,
+        .section-img-upload .bank-select-wrap input.bank-dropdown::-webkit-list-button { display: none; }
+        .section-img-upload .bank-select-wrap input.bank-dropdown::placeholder { color: var(--neutral-600); }
+        .section-img-upload .bank-select-wrap input.bank-dropdown:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(251,113,133,0.15), 0 1px 3px rgba(0,0,0,0.05); }
+        .section-img-upload .bank-select-wrap .bank-clear-btn {
+            position: absolute;
+            right: 1.35rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1rem;
+            height: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            background: var(--neutral-200);
+            border: none;
+            border-radius: 50%;
+            color: var(--neutral-600);
+            font-size: 0.85rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .section-img-upload .bank-select-wrap .bank-clear-btn:hover { background: var(--danger-light); color: var(--danger); }
+        .section-img-upload .bank-quick-select { flex-basis: 100%; display: flex; flex-wrap: nowrap; gap: 0.3rem; margin-top: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; min-width: 0; }
+        .section-img-upload .bank-quick-select::-webkit-scrollbar { height: 5px; }
+        .section-img-upload .bank-quick-select::-webkit-scrollbar-track { background: rgba(251,113,133,0.06); border-radius: 3px; }
+        .section-img-upload .bank-quick-select::-webkit-scrollbar-thumb { background: rgba(251,113,133,0.35); border-radius: 3px; }
+        .section-img-upload .bank-quick-btn { padding: 0.24rem 0.48rem; font-size: 0.66rem; border-radius: 8px; border: 1px solid rgba(251,113,133,0.3); background: linear-gradient(180deg, #fff 0%, rgba(253,242,248,0.6) 100%); color: var(--primary-dark); cursor: pointer; font-weight: 600; transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0; min-height: 26px; box-shadow: 0 1px 2px rgba(251,113,133,0.06); letter-spacing: 0.02em; }
+        .section-img-upload .bank-quick-btn:hover { background: linear-gradient(180deg, rgba(253,242,248,0.9) 0%, rgba(251,207,232,0.5) 100%); border-color: rgba(251,113,133,0.5); box-shadow: 0 2px 6px rgba(251,113,133,0.12); transform: translateY(-1px); }
+        .section-img-upload span[onclick] { display: inline-flex; align-items: center; white-space: nowrap; gap: 0.3rem; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: 8px; transition: all 0.2s; }
+        .section-img-upload span[onclick]:hover { background: rgba(251,113,133,0.08); }
+        .section-img-upload .bank-select-wrap .bank-arrow {
+            position: absolute;
+            right: 0.6rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--neutral-600);
+            font-size: 0.6rem;
+        }
+        .section-card .screenshot-preview {
+            margin-bottom: 1rem;
+            max-width: 100%;
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--neutral-200);
+            box-shadow: var(--shadow);
+        }
+        .section-card .screenshot-preview img { width: 100%; max-height: 280px; object-fit: contain; display: block; }
+        .section-card .screenshot-preview .clear-btn {
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            background: rgba(220,38,38,0.1);
+            color: var(--danger);
+            border: 1px solid rgba(220,38,38,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        @media print {
+            .top-bar, .action-row, .toast, .section-img-upload { display: none !important; }
+            body { background: #fff; }
+            body::before { display: none; }
+            .cf-table input { border: none; background: transparent; }
+        }
+        .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 1rem; }
+        .confirm-overlay.show { display: flex; }
+        .confirm-modal { background: #fff; border-radius: 16px; padding: 1.5rem 1.75rem; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 4px 12px rgba(251,113,133,0.15); border: 1px solid rgba(251,113,133,0.2); animation: confirmSlide 0.25s ease; }
+        @keyframes confirmSlide { from { opacity: 0; transform: scale(0.95) translateY(-10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .confirm-modal p { font-size: 1rem; color: #1e293b; line-height: 1.5; margin-bottom: 1.25rem; }
+        .confirm-modal-btns { display: flex; gap: 0.75rem; justify-content: flex-end; }
+        .confirm-btn { padding: 0.5rem 1.25rem; font-size: 0.9rem; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; font-family: inherit; }
+        .confirm-btn:hover { background: #f1f5f9; }
+        .confirm-btn.danger { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; border-color: #b91c1c; }
+        .confirm-btn.danger:hover { background: linear-gradient(135deg, #b91c1c, #dc2626); box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+    </style>
+</head>
+<body>
+    <nav class="top-bar">
+        <span class="logo">Cash Flow</span>
+        <div class="nav-wrap">
+            <a href="/" class="nav-btn primary"><span class="icon">💰</span>Cash Flow</a>
+            <a href="/extra-short" class="nav-btn"><span class="icon">📊</span>Extra/Short</a>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <h1>💰 Cash Flow Summary</h1>
+            <p class="subtitle">Track Bank, Gateway & User balances — Add data, save locally, and export for reports</p>
+            <span class="date-badge" id="dateDisplay"></span>
+        </header>
+        <div class="action-row">
+            <button type="button" class="action-btn refresh" onclick="reloadFromServer()">🔄 Reload Data</button>
+            <button type="button" class="action-btn save" onclick="saveData()">💾 Save to Browser</button>
+            <button type="button" class="action-btn" onclick="downloadCashFlowCSV()" style="background:rgba(5,150,105,0.15);color:var(--success);border:1px solid rgba(5,150,105,0.3)" title="Export all balances to CSV file">📥 Export CSV</button>
+            <button type="button" class="action-btn" onclick="clearAllAmounts()" style="background:rgba(220,38,38,0.1);color:var(--danger);border:1px solid rgba(220,38,38,0.3)" title="Clear all amount fields">🗑 Clear Amounts</button>
+            <button type="button" class="action-btn" onclick="deleteAllData()" style="background:rgba(127,29,29,0.12);color:#991b1b;border:1px solid rgba(220,38,38,0.4)" title="Remove all saved data and start fresh">🗑 Delete All</button>
+            <button type="button" class="action-btn save" onclick="window.print()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff">🖨 Print</button>
+        </div>
+        <div id="tableWrap"></div>
+    </div>
+    <div id="toast" class="toast">✓ Saved!</div>
+    <script>
+        const API_URL = (window.location.origin && window.location.origin.startsWith('http')) ? window.location.origin : 'http://localhost:5000';
+        const STORAGE_KEY = 'cashFlowSummary';
+        const BANK_OPTS = [
+            { key: '8a', name: 'Lexiroof Union Bank', short: 'L-Union' },
+            { key: '8b', name: 'Lexiroof SBI', short: 'L-SBI' },
+            { key: '8c', name: 'Lexiroof Axis', short: 'L-Axis' },
+            { key: '8d', name: 'Lexiroof Indusind', short: 'L-Indus' },
+            { key: '8e', name: 'Lexiroof Kotak', short: 'L-Kotak' },
+            { key: '8f', name: 'Lexiroof HDFC', short: 'L-HDFC' },
+            { key: '8g', name: 'Epocketpay Axis', short: 'E-Axis' },
+            { key: '8h', name: 'Epocketpay BOI', short: 'E-BOI' },
+            { key: '8i', name: 'DIG Indusind', short: 'DIG' }
+        ];
+        const GATEWAY_OPTS = [
+            { key: '1b', name: 'Pocketpay Busybox' },
+            { key: '2b', name: 'Lexi Busybox' },
+            { key: '3b', name: 'PocketPay Nixa' },
+            { key: '4b', name: 'Lexi Nixa' },
+            { key: '5', name: 'Finkin Lexi' },
+            { key: '6', name: 'Finkin PocketPay' },
+            { key: '7', name: 'Finkin Dig' }
+        ];
+        const USER_ITEMS = [
+            { key: 'gatewaytest', name: 'GATEWAYTEST' },
+            { key: 'royal_pay', name: 'ROYAL PAY' },
+            { key: 'gmr_international', name: 'GMR INTERNATIONAL GROUP LTD' },
+            { key: 'binance_autopay', name: 'BINANCE AUTOPAY' },
+            { key: 'minex', name: 'MINEX' },
+            { key: 'einpays', name: 'EINPAYS' },
+            { key: 'flavourfimly', name: 'FLAVOUR FAMILY' },
+            { key: 'atps_global', name: 'ATPS GLOBAL PRIVATE LIMITED' },
+            { key: 'zora_fintech', name: 'ZORA FINTECH LLC' }
+        ];
+        const DEFAULT_USEABLE_KEYS = ['royal_pay', 'gmr_international', 'einpays'];
+        function formatNum(n) {
+            if (n === null || n === undefined || n === '') return '0';
+            const val = typeof n === 'string' ? parseNum(n) : Number(n);
+            if (isNaN(val)) return '0';
+            const fixed = val.toFixed(2);
+            return fixed.endsWith('.00') ? String(Math.round(val)) : fixed;
+        }
+        function parseNum(val) {
+            if (val === null || val === undefined) return 0;
+            let s = String(val).trim().replace(/\s/g, '');
+            if (!s) return 0;
+            // Remove commas - Indian (3,57,228) & US (357,228) format
+            s = s.replace(/,/g, '');
+            // Dot as thousand separator only when 3 digits after (European): 49.500=49500. Keep .XX as decimal (277673.72)
+            if (/^\d{1,}\.\d{3}$/.test(s)) {
+                s = s.replace('.', '');
+            }
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
+        }
+        function defaultMaint(amt) {
+            const a = parseNum(amt);
+            return a >= 100000 ? '1,00,000' : (a > 0 ? formatNum(a) : '0');
+        }
+        function getData() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            } catch (e) { return {}; }
+        }
+        function saveToStorage(data) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                return true;
+            } catch (e) { return false; }
+        }
+        function syncServerQuiet(d) {
+            fetch(API_URL + '/api/cash-flow-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: d })
+            }).catch(function() {});
+        }
+        function pushDataToServer(d) {
+            return fetch(API_URL + '/api/cash-flow-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: d })
+            });
+        }
+        function showToast(msg, isError) {
+            const t = document.getElementById('toast');
+            t.textContent = msg || (isError ? 'Error occurred' : 'Saved successfully');
+            t.classList.toggle('toast-error', !!isError);
+            t.classList.add('show');
+            clearTimeout(t._toastTimer);
+            t._toastTimer = setTimeout(function() { t.classList.remove('show'); t.classList.remove('toast-error'); }, 2200);
+        }
+        async function pullFromServer() {
+            try {
+                const r = await fetch(API_URL + '/api/cash-flow-data');
+                const j = await r.json();
+                if (j && j.ok && j.data && typeof j.data === 'object' && Object.keys(j.data).length > 0) {
+                    saveToStorage(j.data);
+                }
+            } catch (e) { /* offline / MySQL band */ }
+        }
+        async function reloadFromServer() {
+            await pullFromServer();
+            loadData();
+            showToast('Data reloaded');
+        }
+        async function loadData() {
+            const saved = getData();
+            let html = '';
+            let totalBank = 0, totalGateway = 0, totalUser = 0;
+            var idx = 1;
+            function rowBank(opt, name, amt, noteKey) {
+                const amtNum = parseNum(amt);
+                const hasNote = saved[noteKey] !== undefined && saved[noteKey] !== '' && !(amtNum > 0 && (saved[noteKey] === '0' || saved[noteKey] === 0));
+                const note = hasNote ? saved[noteKey] : defaultMaint(amtNum);
+                const maintNum = parseNum(note);
+                const netBal = Math.round((amtNum - maintNum) * 100) / 100;
+                return '<tr><td class="col-sno">' + (idx++) + '</td><td class="col-name">' + name + '</td><td class="col-amount"><input type="text" inputmode="decimal" data-key="' + opt + '" value="' + formatNum(saved[opt] !== undefined && saved[opt] !== '' ? amt : 0) + '" onchange="updateAmt(this)" oninput="updateRowNetBalance(this.closest(\'tr\'))"></td><td class="col-note"><input type="text" data-key="' + noteKey + '" value="' + note + '" onchange="updateNote(this)" oninput="updateRowNetBalance(this.closest(\'tr\'))" placeholder="Maintenance balance"></td><td class="col-net-balance"><input type="text" class="net-balance-inp" value="' + formatNum(netBal) + '" readonly tabindex="-1"></td></tr>';
+            }
+            function rowGateway(opt, name, amt) {
+                return '<tr><td class="col-sno">' + (idx++) + '</td><td class="col-name">' + name + '</td><td class="col-amount"><input type="text" inputmode="decimal" data-key="' + opt + '" value="' + formatNum(saved[opt] !== undefined && saved[opt] !== '' ? amt : 0) + '" onchange="updateAmt(this)" oninput="recalcTotals()"></td></tr>';
+            }
+            const bankDatalistOpts = BANK_OPTS.map(m => '<option value="' + (m.name || '').replace(/"/g, '&quot;') + '"></option>').join('');
+            html += '<div class="section-card"><div class="section-header-row"><span class="section-title">1) Bank Balance</span><div class="section-img-upload" id="screenshotZone" title="Bank balance"><div class="bank-select-wrap"><input type="text" class="bank-dropdown" id="bankSelectInput" list="bankList" placeholder="Select bank" autocomplete="off" title="Type to search"><button type="button" class="bank-clear-btn" onclick="event.stopPropagation(); clearBankSelect()" title="Clear selection">×</button><span class="bank-arrow">▾</span><datalist id="bankList">' + bankDatalistOpts + '</datalist></div><input type="hidden" id="bankSelectKey"><input type="file" id="screenshotInput" accept="image/png,image/jpeg,image/jpg,image/webp" multiple onchange="handleScreenshotSelect(event,\'1\')"><span onclick="document.getElementById(\'screenshotInput\').click()" title="Select one or multiple screenshots">📷 Upload</span><button type="button" class="img-paste-btn" onclick="event.stopPropagation(); pasteScreenshot(\'1\')" title="Copy from Snipping Tool and paste here">Paste</button><button type="button" class="img-submit-btn" id="submitBankBtn" onclick="event.stopPropagation(); submitBankFromScreenshot()" title="Extract balance from screenshot and add to selected bank">Submit</button><button type="button" class="img-delete-btn" onclick="event.stopPropagation(); clearAllBankAmounts()" title="Clear all bank amounts">Delete</button><div class="bank-quick-select">' + BANK_OPTS.map(b => '<button type="button" class="bank-quick-btn" onclick="selectQuickBank(\'' + b.key + '\')" title="' + (b.name || '').replace(/"/g, '&quot;') + '">' + (b.short || b.name) + '</button>').join('') + '</div></div></div><div class="screenshot-preview" id="screenshotPreview" style="display:none"><img id="screenshotImg" src="" alt=""><button type="button" class="clear-btn" onclick="clearScreenshot(\'1\')">Remove</button></div><div class="cf-table-wrap"><table class="cf-table"><thead><tr><th class="col-sno">#</th><th class="col-name"><span class="th-full">BANK NAME</span><span class="th-short">Bank</span></th><th class="col-amount">Amount</th><th class="col-note"><span class="th-full">Maintenance balance</span><span class="th-short">Maint. Bal</span></th><th class="col-net-balance"><span class="th-full">Net Balance</span><span class="th-short">Net</span></th></tr></thead><tbody>';
+            idx = 1;
+            for (const m of BANK_OPTS) {
+                const amt = saved[m.key] !== undefined ? parseNum(saved[m.key]) : 0;
+                totalBank += amt;
+                html += rowBank(m.key, m.name, amt, m.key + '_note');
+            }
+            const bankCustoms = saved.custom_bank || [];
+            let totalBankMaint = 0;
+            bankCustoms.forEach((c, i) => {
+                totalBank += parseNum(c.amount);
+                const cAmt = parseNum(c.amount !== undefined && c.amount !== '' ? c.amount : 0);
+                const cNote = (c.note !== undefined && c.note !== '' && !(parseNum(c.amount) > 0 && (c.note === '0' || c.note === 0))) ? c.note : defaultMaint(c.amount);
+                const cNet = Math.round((cAmt - parseNum(cNote)) * 100) / 100;
+                totalBankMaint += parseNum(cNote);
+                html += '<tr><td class="col-sno">' + (idx++) + '</td><td class="col-name col-name-with-del"><input type="text" value="' + (c.name || '') + '" data-idx="' + i + '" data-type="bank" onchange="updateCustom(this)" placeholder="Bank name"><button type="button" class="btn-del" onclick="delCustom(' + i + ',\'bank\')">Delete</button></td><td class="col-amount"><input type="text" inputmode="decimal" value="' + formatNum(c.amount !== undefined && c.amount !== '' ? parseNum(c.amount) : 0) + '" data-idx="' + i + '" data-type="bank" onchange="updateCustomAmt(this)" oninput="updateRowNetBalance(this.closest(\'tr\'))"></td><td class="col-note"><input type="text" value="' + cNote + '" data-idx="' + i + '" data-type="bank" onchange="updateCustomNote(this)" oninput="updateRowNetBalance(this.closest(\'tr\'))" placeholder="Maintenance balance"></td><td class="col-net-balance"><input type="text" class="net-balance-inp" value="' + formatNum(cNet) + '" readonly tabindex="-1"></td></tr>';
+            });
+            BANK_OPTS.forEach(m => { const a = parseNum(saved[m.key]); const n = (saved[m.key + '_note'] !== undefined && saved[m.key + '_note'] !== '' && !(a > 0 && (saved[m.key + '_note'] === '0' || saved[m.key + '_note'] === 0))) ? saved[m.key + '_note'] : defaultMaint(a); totalBankMaint += parseNum(n); });
+            html += '<tr class="row-total-bank"><td></td><td class="col-name">TOTAL BANK BALANCE</td><td class="col-amount" id="totalBankVal">' + formatNum(totalBank) + '</td><td></td><td class="col-net-balance"><input type="text" class="net-balance-inp net-balance-total" id="totalBankNetVal" value="' + formatNum(Math.round((totalBank - totalBankMaint) * 100) / 100) + '" readonly tabindex="-1"></td></tr></tbody></table></div><button type="button" class="add-row-btn" onclick="addCustomRow(\'bank\')">+ Add Bank</button></div>';
+            html += '<div class="section-card"><div class="section-header-row"><span class="section-title">2) Gateway Balance</span><div class="section-img-upload" id="screenshotZone2" title="Gateway balance"><input type="file" id="screenshotInput2" accept="image/png,image/jpeg,image/jpg,image/webp" multiple onchange="handleScreenshotSelect(event,\'2\')"><span onclick="document.getElementById(\'screenshotInput2\').click()" title="Select one or multiple screenshots">📷 Upload</span><button type="button" class="img-paste-btn" onclick="event.stopPropagation(); pasteScreenshot(\'2\')" title="Copy from Snipping Tool and paste here">Paste</button><button type="button" class="img-submit-btn" id="submitGatewayBtn" onclick="event.stopPropagation(); submitGatewayFromScreenshot()" title="Match amounts from screenshot and add">Submit</button><button type="button" class="img-delete-btn" onclick="event.stopPropagation(); clearAllGatewayAmounts()" title="Clear all gateway amounts">Delete</button></div></div><div class="screenshot-preview" id="screenshotPreview2" style="display:none"><img id="screenshotImg2" src="" alt=""><button type="button" class="clear-btn" onclick="clearScreenshot(\'2\')">Remove</button></div><div class="cf-table-wrap"><table class="cf-table"><thead><tr><th class="col-sno">#</th><th class="col-name"><span class="th-full">GATEWAY NAME</span><span class="th-short">Gateway</span></th><th class="col-amount">Amount</th></tr></thead><tbody>';
+            idx = 1;
+            for (const m of GATEWAY_OPTS) {
+                const amt = saved[m.key] !== undefined ? parseNum(saved[m.key]) : 0;
+                totalGateway += amt;
+                html += rowGateway(m.key, m.name, amt);
+            }
+            const gateCustoms = saved.custom_gateway || [];
+            gateCustoms.forEach((c, i) => {
+                totalGateway += parseNum(c.amount);
+                html += '<tr><td class="col-sno">' + (idx++) + '</td><td class="col-name col-name-with-del"><input type="text" value="' + (c.name || '') + '" data-idx="' + i + '" data-type="gateway" onchange="updateCustom(this)" placeholder="Gateway name"><button type="button" class="btn-del" onclick="delCustom(' + i + ',\'gateway\')">Delete</button></td><td class="col-amount"><input type="text" inputmode="decimal" value="' + formatNum(c.amount !== undefined && c.amount !== '' ? parseNum(c.amount) : 0) + '" data-idx="' + i + '" data-type="gateway" onchange="updateCustomAmt(this)" oninput="recalcTotals()"></td></tr>';
+            });
+            html += '<tr class="row-total-gateway"><td></td><td class="col-name">TOTAL GATEWAY BALANCE</td><td class="col-amount" id="totalGatewayVal">' + formatNum(totalGateway) + '</td></tr></tbody></table></div><button type="button" class="add-row-btn" onclick="addCustomRow(\'gateway\')">+ Add Gateway</button></div>';
+            html += '<div class="section-card"><div class="section-header-row"><span class="section-title">3) User Balance</span><div class="section-img-upload" id="screenshotZone3" title="User balance"><input type="file" id="screenshotInput3" accept="image/png,image/jpeg,image/jpg,image/webp" onchange="handleScreenshotSelect(event,\'3\')"><span onclick="document.getElementById(\'screenshotInput3\').click()" title="Select one or multiple screenshots">📷 Upload</span><button type="button" class="img-paste-btn" onclick="event.stopPropagation(); pasteScreenshot(\'3\')" title="Copy from Snipping Tool and paste here">Paste</button><button type="button" class="img-submit-btn" id="submitUserBtn" onclick="event.stopPropagation(); submitUserFromScreenshot()" title="Extract amounts from screenshot">Submit</button><button type="button" class="img-delete-btn" onclick="event.stopPropagation(); clearAllUserAmounts()" title="Clear all user amounts">Delete</button></div></div><div class="screenshot-preview" id="screenshotPreview3" style="display:none"><img id="screenshotImg3" src="" alt=""><button type="button" class="clear-btn" onclick="clearScreenshot(\'3\')">Remove</button></div><div class="cf-table-wrap"><table class="cf-table"><thead><tr><th class="col-sno">#</th><th class="col-name"><span class="th-full">USER</span><span class="th-short">User</span></th><th class="col-amount">Amount</th><th class="col-use"><span class="th-full">Use</span><span class="th-short">Use</span></th><th class="col-useable"><span class="th-full">Now Usable Balance</span><span class="th-short">Usable</span></th></tr></thead><tbody>';
+            let totalUseable = 0;
+            for (const o of USER_ITEMS) {
+                const amt = saved[o.key] !== undefined ? parseNum(saved[o.key]) : 0;
+                const useableOn = saved[o.key + '_useable_on'] === undefined ? DEFAULT_USEABLE_KEYS.includes(o.key) : (saved[o.key + '_useable_on'] === true || saved[o.key + '_useable_on'] === 'true');
+                const useable = useableOn ? (saved[o.key + '_usable'] !== undefined && saved[o.key + '_usable'] !== '' ? parseNum(saved[o.key + '_usable']) : amt) : 0;
+                totalUser += amt;
+                totalUseable += useable;
+                html += '<tr class="row-other"><td></td><td class="col-name">' + o.name + '</td><td class="col-amount"><input type="text" inputmode="decimal" data-key="' + o.key + '" value="' + formatNum(saved[o.key] !== undefined && saved[o.key] !== '' ? amt : 0) + '" onchange="updateAmt(this)" oninput="recalcTotals()"></td><td class="col-use"><label class="useable-check-wrap"><input type="checkbox" data-key="' + o.key + '_useable_on" ' + (useableOn ? 'checked' : '') + ' onchange="toggleUseable(this)"><span>Use</span></label></td><td class="col-useable"><input type="text" inputmode="decimal" data-key="' + o.key + '_usable" value="' + formatNum(useable) + '" ' + (useableOn ? '' : 'disabled') + ' onchange="updateAmt(this)" oninput="recalcTotals()"></td></tr>';
+            }
+            const extraAmt = saved.extra !== undefined ? parseNum(saved.extra) : 0;
+            const extraUseableOn = saved.extra_useable_on === true || saved.extra_useable_on === 'true';
+            const extraUseable = extraUseableOn ? (saved.extra_usable !== undefined && saved.extra_usable !== '' ? parseNum(saved.extra_usable) : extraAmt) : 0;
+            totalUser += extraAmt;
+            totalUseable += extraUseable;
+            html += '<tr class="row-extra"><td></td><td class="col-name">Gear</td><td class="col-amount"><input type="text" inputmode="decimal" data-key="extra" value="' + formatNum(saved.extra !== undefined && saved.extra !== '' ? extraAmt : 0) + '" onchange="updateAmt(this)" oninput="recalcTotals()"></td><td class="col-use"><label class="useable-check-wrap"><input type="checkbox" data-key="extra_useable_on" ' + (extraUseableOn ? 'checked' : '') + ' onchange="toggleUseable(this)"><span>Use</span></label></td><td class="col-useable"><input type="text" inputmode="decimal" data-key="extra_usable" value="' + formatNum(extraUseable) + '" ' + (extraUseableOn ? '' : 'disabled') + ' onchange="updateAmt(this)" oninput="recalcTotals()"></td></tr>';
+            html += '<tr class="row-total-user"><td></td><td class="col-name">TOTAL USER BALANCE</td><td class="col-amount" id="totalUserVal">' + formatNum(totalUser) + '</td><td class="col-use"></td><td class="col-useable" id="totalUserUseableVal">' + formatNum(totalUseable) + '</td></tr></tbody></table></div></div>';
+            const grandTotal = totalBank + totalGateway + totalUser;
+            html += '<div id="grandTotalEl" class="grand-total-box">GRAND TOTAL: ₹' + formatNum(grandTotal) + '</div>';
+            document.getElementById('tableWrap').innerHTML = html;
+            attachScreenshotDragDrop();
+            attachBankSearch();
+        }
+        function attachBankSearch() {
+            const inp = document.getElementById('bankSelectInput');
+            const keyInp = document.getElementById('bankSelectKey');
+            if (!inp || !keyInp) return;
+            function syncKey() {
+                const v = (inp.value || '').trim();
+                const match = BANK_OPTS.find(m => m.name.toLowerCase() === v.toLowerCase());
+                keyInp.value = match ? match.key : '';
+            }
+            inp.addEventListener('input', syncKey);
+            inp.addEventListener('change', syncKey);
+        }
+        function toggleUseable(cb) {
+            const d = getData();
+            const key = cb.dataset.key;
+            d[key] = cb.checked;
+            const baseKey = key.replace('_useable_on', '');
+            const row = cb.closest('tr');
+            const amtInp = row ? row.querySelector('.col-amount input') : null;
+            const useableInp = document.querySelector('.cf-table input[data-key="' + baseKey + '_usable"]');
+            if (useableInp) {
+                useableInp.disabled = !cb.checked;
+                if (cb.checked && amtInp) {
+                    const amtVal = amtInp.value || '0';
+                    useableInp.value = formatNum(parseNum(amtVal));
+                    d[baseKey + '_usable'] = formatNum(parseNum(amtVal));
+                } else {
+                    useableInp.value = '0';
+                    d[baseKey + '_usable'] = '';
+                }
+            }
+            saveToStorage(d);
+            recalcTotals();
+        }
+        function recalcTotals() {
+            const d = getData();
+            let tBank = 0, tGate = 0, tUser = 0, tUseable = 0;
+            BANK_OPTS.forEach(m => tBank += parseNum(d[m.key]));
+            (d.custom_bank || []).forEach(c => tBank += parseNum(c.amount));
+            GATEWAY_OPTS.forEach(m => tGate += parseNum(d[m.key]));
+            (d.custom_gateway || []).forEach(c => tGate += parseNum(c.amount));
+            USER_ITEMS.forEach(o => {
+                const amt = parseNum(d[o.key]);
+                tUser += amt;
+                const on = d[o.key + '_useable_on'] === undefined ? DEFAULT_USEABLE_KEYS.includes(o.key) : (d[o.key + '_useable_on'] === true || d[o.key + '_useable_on'] === 'true');
+                if (on) tUseable += (d[o.key + '_usable'] !== undefined && d[o.key + '_usable'] !== '') ? parseNum(d[o.key + '_usable']) : amt;
+            });
+            tUser += parseNum(d.extra);
+            if (d.extra_useable_on) tUseable += (d.extra_usable !== undefined && d.extra_usable !== '') ? parseNum(d.extra_usable) : parseNum(d.extra);
+            const el1 = document.getElementById('totalBankVal');
+            const el2 = document.getElementById('totalGatewayVal');
+            const el3 = document.getElementById('totalUserVal');
+            const el5 = document.getElementById('totalUserUseableVal');
+            const el4 = document.getElementById('grandTotalEl');
+            if (el1) el1.textContent = formatNum(tBank);
+            if (el2) el2.textContent = formatNum(tGate);
+            if (el3) el3.textContent = formatNum(tUser);
+            if (el5) el5.textContent = formatNum(tUseable);
+            if (el4) el4.innerHTML = 'GRAND TOTAL: ₹' + formatNum(tBank + tGate + tUser);
+        }
+        function updateRowNetBalance(row) {
+            const amtInp = row.querySelector('.col-amount input');
+            const noteInp = row.querySelector('.col-note input');
+            const netTd = row.querySelector('.col-net-balance');
+            if (!netTd) return;
+            const amt = parseNum(amtInp ? amtInp.value : 0);
+            const note = parseNum(noteInp ? noteInp.value : 0);
+            const netVal = Math.round((amt - note) * 100) / 100;
+            const val = formatNum(netVal);
+            const netInp = netTd.querySelector('input.net-balance-inp');
+            if (netInp) netInp.value = val; else netTd.textContent = val;
+        }
+        function updateAllNetBalancesAndTotals() {
+            document.querySelectorAll('.cf-table tbody tr:not(.row-total-bank):not(.row-total-gateway):not(.row-total-user)').forEach(tr => {
+                if (tr.querySelector('.col-net-balance')) updateRowNetBalance(tr);
+            });
+            const d = getData();
+            let tBank = 0, tBankM = 0;
+            BANK_OPTS.forEach(m => { const a = parseNum(d[m.key]); tBank += a; const n = (d[m.key + '_note'] !== undefined && d[m.key + '_note'] !== '' && !(a > 0 && (d[m.key + '_note'] === '0' || d[m.key + '_note'] === 0))) ? d[m.key + '_note'] : defaultMaint(a); tBankM += parseNum(n); });
+            (d.custom_bank || []).forEach(c => { const a = parseNum(c.amount); tBank += a; const n = (c.note !== undefined && c.note !== '' && !(a > 0 && (c.note === '0' || c.note === 0))) ? c.note : defaultMaint(a); tBankM += parseNum(n); });
+            const totalBankRow = document.querySelector('.row-total-bank');
+            if (totalBankRow) { const inp = totalBankRow.querySelector('.col-net-balance input'); if (inp) inp.value = formatNum(Math.round((tBank - tBankM) * 100) / 100); }
+        }
+        function updateAmt(inp) {
+            const d = getData();
+            const amtNum = parseNum(inp.value || 0);
+            const formatted = formatNum(amtNum);
+            d[inp.dataset.key] = formatted;
+            inp.value = formatted;
+            const row = inp.closest('tr');
+            const noteInp = row && row.querySelector('.col-note input');
+            if (noteInp && amtNum > 0) {
+                if (amtNum >= 100000) {
+                    noteInp.value = '1,00,000';
+                    d[inp.dataset.key + '_note'] = '1,00,000';
+                } else {
+                    noteInp.value = formatNum(amtNum);
+                    d[inp.dataset.key + '_note'] = formatNum(amtNum);
+                }
+            }
+            saveToStorage(d);
+            recalcTotals();
+            updateRowNetBalance(row);
+            updateAllNetBalancesAndTotals();
+        }
+        function updateNote(inp) {
+            const d = getData();
+            d[inp.dataset.key] = inp.value;
+            saveToStorage(d);
+            updateRowNetBalance(inp.closest('tr'));
+            updateAllNetBalancesAndTotals();
+        }
+        function updateCustom(inp) {
+            const d = getData();
+            const key = 'custom_' + inp.dataset.type;
+            d[key] = d[key] || [];
+            const idx = parseInt(inp.dataset.idx);
+            d[key][idx] = d[key][idx] || {};
+            const cell = inp.closest('td');
+            if (cell && cell.classList.contains('col-name')) d[key][idx].name = inp.value;
+            else if (inp.dataset.type === 'bank') d[key][idx].note = inp.value;
+            saveToStorage(d);
+        }
+        function updateCustomAmt(inp) {
+            const d = getData();
+            const key = 'custom_' + inp.dataset.type;
+            d[key] = d[key] || [];
+            const idx = parseInt(inp.dataset.idx);
+            d[key][idx] = d[key][idx] || {};
+            const amtNum = parseNum(inp.value || 0);
+            const formatted = formatNum(amtNum);
+            d[key][idx].amount = formatted;
+            inp.value = formatted;
+            const row = inp.closest('tr');
+            const noteInp = row && row.querySelector('.col-note input');
+            if (noteInp && inp.dataset.type === 'bank' && amtNum > 0) {
+                if (amtNum >= 100000) {
+                    noteInp.value = '1,00,000';
+                    d[key][idx].note = '1,00,000';
+                } else {
+                    noteInp.value = formatNum(amtNum);
+                    d[key][idx].note = formatNum(amtNum);
+                }
+            }
+            saveToStorage(d);
+            recalcTotals();
+            if (noteInp) { updateRowNetBalance(row); updateAllNetBalancesAndTotals(); }
+        }
+        function updateCustomNote(inp) {
+            const d = getData();
+            const key = 'custom_' + inp.dataset.type;
+            d[key] = d[key] || [];
+            const idx = parseInt(inp.dataset.idx);
+            d[key][idx] = d[key][idx] || {};
+            d[key][idx].note = inp.value;
+            saveToStorage(d);
+            updateRowNetBalance(inp.closest('tr'));
+            updateAllNetBalancesAndTotals();
+        }
+        function addCustomRow(type) {
+            const d = getData();
+            const key = 'custom_' + type;
+            d[key] = d[key] || [];
+            d[key].push(type === 'bank' ? { name: '', amount: 0, note: '0' } : { name: '', amount: 0 });
+            saveToStorage(d);
+            loadData();
+        }
+        function delCustom(idx, type) {
+            const d = getData();
+            const key = 'custom_' + type;
+            d[key] = d[key] || [];
+            d[key].splice(idx, 1);
+            saveToStorage(d);
+            loadData();
+        }
+        function clearAllAmounts() {
+            showConfirm('Clear all amount fields? This cannot be undone.', () => doClearAllAmounts(), { okText: 'Clear' });
+        }
+        function doClearAllAmounts() {
+            const d = getData();
+            BANK_OPTS.forEach(m => { d[m.key] = ''; d[m.key + '_note'] = ''; });
+            GATEWAY_OPTS.forEach(m => { d[m.key] = ''; });
+            USER_ITEMS.forEach(o => { d[o.key] = ''; d[o.key + '_usable'] = ''; delete d[o.key + '_useable_on']; });
+            d.extra = '';
+            d.extra_usable = '';
+            delete d.extra_useable_on;
+            (d.custom_bank || []).forEach((c, i) => { d.custom_bank[i].amount = ''; d.custom_bank[i].note = '0'; });
+            (d.custom_gateway || []).forEach((c, i) => { d.custom_gateway[i].amount = ''; });
+            saveToStorage(d);
+            loadData();
+            showToast('All amounts cleared');
+        }
+        function downloadCashFlowCSV() {
+            const d = getData();
+            const rows = [];
+            rows.push(['Section', 'Name', 'Amount', 'Maintenance', 'Net/Usable']);
+            BANK_OPTS.forEach(m => {
+                const amt = parseNum(d[m.key]);
+                const note = parseNum(d[m.key + '_note'] || 0);
+                const net = Math.round((amt - note) * 100) / 100;
+                rows.push(['Bank', m.name || m.key, amt, note, net]);
+            });
+            (d.custom_bank || []).forEach(c => {
+                const amt = parseNum(c.amount);
+                const note = parseNum(c.note || 0);
+                rows.push(['Bank', c.name || '', amt, note, Math.round((amt - note) * 100) / 100]);
+            });
+            GATEWAY_OPTS.forEach(m => rows.push(['Gateway', m.name || m.key, parseNum(d[m.key]), '', '']));
+            (d.custom_gateway || []).forEach(c => rows.push(['Gateway', c.name || '', parseNum(c.amount), '', '']));
+            USER_ITEMS.forEach(o => {
+                const amt = parseNum(d[o.key]);
+                const useable = parseNum(d[o.key + '_usable'] || 0);
+                rows.push(['User', o.name, amt, '', useable]);
+            });
+            rows.push(['User', 'Gear', parseNum(d.extra), '', parseNum(d.extra_usable || 0)]);
+            const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'cash-flow-summary-' + new Date().toISOString().slice(0, 10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('CSV downloaded');
+        }
+        function deleteAllData() {
+            showConfirm('Delete all saved data? This will remove all amounts and custom banks/gateways. This cannot be undone.', () => doDeleteAllData());
+        }
+        function doDeleteAllData() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+                fetch(API_URL + '/api/cash-flow-data', { method: 'DELETE' }).catch(function() {});
+                loadData();
+                showToast('All data deleted');
+            } catch (e) {
+                showToast('Could not delete data', true);
+            }
+        }
+        function saveData() {
+            const d = getData();
+            document.querySelectorAll('.cf-table input[data-key]').forEach(inp => {
+                d[inp.dataset.key] = inp.type === 'checkbox' ? inp.checked : inp.value;
+            });
+            ['bank', 'gateway'].forEach(type => {
+                const key = 'custom_' + type;
+                const byIdx = {};
+                document.querySelectorAll('.cf-table input[data-type="' + type + '"]').forEach(inp => {
+                    const idx = parseInt(inp.dataset.idx);
+                    if (!byIdx[idx]) byIdx[idx] = {};
+                    const cell = inp.closest('td');
+                    if (cell && cell.classList.contains('col-name')) byIdx[idx].name = inp.value;
+                    else if (cell && cell.classList.contains('col-amount')) byIdx[idx].amount = inp.value;
+                    else if (type === 'bank' && cell && cell.classList.contains('col-note')) byIdx[idx].note = inp.value;
+                });
+                d[key] = Object.keys(byIdx).sort((a,b)=>+a - +b).map(k => byIdx[k]);
+            });
+            if (!saveToStorage(d)) return;
+            showToast('All amounts saved successfully');
+            fetch(API_URL + '/api/cash-flow-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: d })
+            }).then(function(r) {
+                if (!r.ok) showToast('Browser mein save ho gaya — database connect nahi ho paya', true);
+            }).catch(function() {
+                showToast('Browser mein save ho gaya — database offline', true);
+            });
+        }
+        document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+        });
+        function handleScreenshotSelect(e, section) {
+            const file = e.target.files && e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            const suffix = (section === '1') ? '' : section;
+            const imgEl = document.getElementById('screenshotImg' + suffix);
+            const prevEl = document.getElementById('screenshotPreview' + suffix);
+            const inpEl = document.getElementById('screenshotInput' + suffix);
+            if (!imgEl || !prevEl) return;
+            const reader = new FileReader();
+            reader.onload = function() {
+                imgEl.src = reader.result;
+                prevEl.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+        /* Provider → Gateway match: Lexi, PocketPay, Dig company */
+        const PROVIDER_TO_GATEWAY = [
+            { pattern: /finkin\s+dig|finkin.*dig/i, key: '7' },
+            { pattern: /nixasoft\s+pay\s+lexi|nixa.*lexi|nixa\s+lexi/i, key: '4b' },
+            { pattern: /nixasoft\s+pay(?!\s+lexi)|nixasoft\s+pay\s*$/i, key: '3b' },
+            { pattern: /finkin\s+pay\s+lexi|finkin.*lexi|finkin\s+lexi/i, key: '5' },
+            { pattern: /finkin\s+pay(?!\s+lexi)|finkin\s+pay\s*$|finkin.*pocket/i, key: '6' },
+            { pattern: /lexi\s+busybox|busybox.*lexi/i, key: '2b' },
+            { pattern: /busy\s*box\s*pay|pocket.*busybox|busybox.*pocket|pocketpay\s+busybox|pocket\s+busybox/i, key: '1b' }
+        ];
+        const PROVIDER_TO_USER = [
+            { pattern: /gatewaytest|mgp7862/i, key: 'gatewaytest' },
+            { pattern: /royal\s*pay|mgp230021/i, key: 'royal_pay' },
+            { pattern: /gmr\s*international|mgp7864/i, key: 'gmr_international' },
+            { pattern: /binance\s*autopay|mgp7868/i, key: 'binance_autopay' },
+            { pattern: /minex|mgp7869/i, key: 'minex' },
+            { pattern: /einpays|mgp78610/i, key: 'einpays' },
+            { pattern: /flavourfimly|mgp78611/i, key: 'flavourfimly' },
+            { pattern: /atps\s*global|mgp78615/i, key: 'atps_global' },
+            { pattern: /zora\s*fintech|mgp78616/i, key: 'zora_fintech' }
+        ];
+        function clearAllBankAmounts() {
+            const d = getData();
+            BANK_OPTS.forEach(m => { d[m.key] = ''; d[m.key + '_note'] = ''; });
+            (d.custom_bank || []).forEach((c, i) => { d.custom_bank[i].amount = ''; d.custom_bank[i].note = '0'; });
+            saveToStorage(d);
+            syncServerQuiet(d);
+            loadData();
+            showToast('Bank amounts cleared');
+        }
+        function clearAllGatewayAmounts() {
+            const d = getData();
+            GATEWAY_OPTS.forEach(m => { d[m.key] = ''; });
+            (d.custom_gateway || []).forEach((c, i) => { d.custom_gateway[i].amount = ''; });
+            saveToStorage(d);
+            syncServerQuiet(d);
+            loadData();
+            showToast('Gateway amounts cleared');
+        }
+        function clearAllUserAmounts() {
+            const d = getData();
+            USER_ITEMS.forEach(o => { d[o.key] = ''; d[o.key + '_note'] = ''; d[o.key + '_usable'] = ''; delete d[o.key + '_useable_on']; });
+            d.extra = '';
+            d.extra_usable = '';
+            delete d.extra_useable_on;
+            saveToStorage(d);
+            syncServerQuiet(d);
+            loadData();
+            showToast('User amounts cleared');
+        }
+        function selectQuickBank(key) {
+            const match = BANK_OPTS.find(m => m.key === key);
+            if (!match) return;
+            const inp = document.getElementById('bankSelectInput');
+            const keyInp = document.getElementById('bankSelectKey');
+            if (inp) inp.value = match.name;
+            if (keyInp) keyInp.value = key;
+        }
+        function clearBankSelect() {
+            const inp = document.getElementById('bankSelectInput');
+            const keyInp = document.getElementById('bankSelectKey');
+            if (inp) inp.value = '';
+            if (keyInp) keyInp.value = '';
+        }
+        async function submitBankFromScreenshot() {
+            let bankKey = document.getElementById('bankSelectKey')?.value;
+            if (!bankKey) {
+                const v = (document.getElementById('bankSelectInput')?.value || '').trim();
+                const match = BANK_OPTS.find(m => m.name.toLowerCase() === v.toLowerCase());
+                bankKey = match ? match.key : '';
+            }
+            if (!bankKey) {
+                showToast('Select a bank first', true);
+                return;
+            }
+            const fileInp = document.getElementById('screenshotInput');
+            const img = document.getElementById('screenshotImg');
+            const files = fileInp?.files;
+            let toProcess = [];
+            if (files && files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    if (files[i].type.startsWith('image/')) toProcess.push(files[i]);
+                }
+            } else if (img?.src?.startsWith('data:')) {
+                toProcess.push(null);
+            }
+            if (toProcess.length === 0) {
+                showToast('Upload or paste screenshot in Bank section', true);
+                return;
+            }
+            const selIdx = BANK_OPTS.findIndex(m => m.key === bankKey);
+            const btn = document.getElementById('submitBankBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Reading...'; }
+            try {
+                if (typeof Tesseract === 'undefined') {
+                    showToast('OCR loading, please wait…', true);
+                    return;
+                }
+                const worker = await Tesseract.createWorker('eng');
+                try {
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: '3',
+                        preserve_interword_spaces: '1',
+                    });
+                } catch (e) {}
+                const d = getData();
+                let updated = 0;
+                for (let i = 0; i < toProcess.length; i++) {
+                    const f = toProcess[i];
+                    let src = img?.src;
+                    if (f) {
+                        src = await new Promise((res, rej) => {
+                            const r = new FileReader();
+                            r.onload = () => res(r.result);
+                            r.onerror = rej;
+                            r.readAsDataURL(f);
+                        });
+                    }
+                    if (!src || !src.startsWith('data:')) continue;
+                    const tmpImg = new Image();
+                    tmpImg.src = src;
+                    await new Promise(r => { if (tmpImg.complete) r(); else { tmpImg.onload = r; tmpImg.onerror = r; } });
+                    let ocrTarget = tmpImg;
+                    try {
+                        const nw = tmpImg.naturalWidth, nh = tmpImg.naturalHeight;
+                        if (nw > 0 && nh > 0) {
+                            const scale = Math.min(2.2, 2000 / nw);
+                            const cw = Math.round(nw * scale), ch = Math.round(nh * scale);
+                            const c = document.createElement('canvas');
+                            c.width = cw;
+                            c.height = ch;
+                            const ctx = c.getContext('2d');
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(tmpImg, 0, 0, cw, ch);
+                            ocrTarget = c;
+                        }
+                    } catch (e) {}
+                    const { data: { text } } = await worker.recognize(ocrTarget);
+                    const amount = parseBankBalanceFromOcr(text);
+                    if (amount != null && amount !== undefined) {
+                        const bk = BANK_OPTS[(selIdx + i) % BANK_OPTS.length];
+                        d[bk.key] = String(amount);
+                        const inp = document.querySelector('.cf-table input[data-key="' + bk.key + '"]');
+                        if (inp) inp.value = formatNum(amount);
+                        updated++;
+                    }
+                }
+                await worker.terminate();
+                saveToStorage(d);
+                if (updated) {
+                    try { await pushDataToServer(d); } catch (e2) {}
+                    await loadData();
+                }
+                recalcTotals();
+                updateAllNetBalancesAndTotals();
+                showToast(updated ? updated + ' bank(s) updated' : 'Could not read balance — try brighter/crop screenshot or type amount manually', true);
+            } catch (e) {
+                showToast(e?.message || 'OCR failed', true);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+            }
+        }
+        function parseBankBalanceFromOcr(ocrText) {
+            let raw = (ocrText || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            raw = raw.replace(/[Oo](?=\d)/g, '0');
+            const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            let ledgerBal = null, lienBal = null;
+            const allAmounts = [];
+            const BAL_LINE = /\b(balance|balances|available|avail|closing|operative|drawable|clear|funds|total|ledger|lien|account|inr|rupees?)\b|₹|rs\.?\s*\d|inr\s*\d/i;
+            function extractAmt(line) {
+                if (!line || line.length < 1) return null;
+                let s = line.replace(/\s+/g, ' ');
+                const rupeeMatch = s.match(/(?:₹|Rs\.?|INR|Rs)\s*([\d,\s]+\.?\d*)/i);
+                if (rupeeMatch) {
+                    const v = parseNum(rupeeMatch[1].replace(/\s/g, ''));
+                    if (v > 0) return v;
+                }
+                const m = s.match(/[\d][\d,\s]*\.?\d{0,2}/g);
+                if (!m || !m.length) return null;
+                const cleaned = m.map(x => parseNum(x.replace(/\s/g, ''))).filter(n => n > 0 && !isNaN(n));
+                if (!cleaned.length) return null;
+                const withComma = m.find(x => /,/.test(x));
+                if (withComma) return parseNum(withComma.replace(/\s/g, ''));
+                return Math.max(...cleaned);
+            }
+            function scrapeAllMoneyCandidates(fullText) {
+                const t = fullText.replace(/\s+/g, ' ');
+                const out = [];
+                const re = /(?:₹|Rs\.?\s*|INR\s*)?[\d][\d,\s]*\.?\d{0,4}/gi;
+                let mm;
+                const seen = new Set();
+                while ((mm = re.exec(t)) !== null) {
+                    const v = parseNum(mm[0].replace(/^(₹|Rs\.?|INR\s*)/i, '').replace(/\s/g, ''));
+                    if (v > 0 && v < 1e14 && !seen.has(v)) {
+                        seen.add(v);
+                        out.push(v);
+                    }
+                }
+                return out;
+            }
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const lineLower = line.toLowerCase();
+                const amt = extractAmt(line);
+                if (amt != null && amt >= 1) allAmounts.push(amt);
+                if (/lien\s*balance|lien\s*amt/i.test(lineLower) && amt != null) { lienBal = amt; continue; }
+                if (/ledger\s*balance/i.test(lineLower) && amt != null) { ledgerBal = amt; continue; }
+                if (/closing\s*balance|closing\s*bal/i.test(lineLower) && amt != null) { ledgerBal = ledgerBal == null ? amt : ledgerBal; continue; }
+                if ((/overall|available|availabl|availabie|clear/i.test(lineLower) && /balance|bal/i.test(lineLower) && !/ledger/i.test(lineLower)) || /overall\s*available/i.test(lineLower)) {
+                    if (amt != null) return amt;
+                    for (let j = i + 1; j < Math.min(i + 8, lines.length); j++) {
+                        const nextAmt = extractAmt(lines[j]);
+                        if (nextAmt != null && nextAmt >= 1) return nextAmt;
+                    }
+                }
+                if (BAL_LINE.test(line) && !/maint|maintenance|min\s*balance/i.test(lineLower)) {
+                    if (amt != null && amt >= 1) return amt;
+                    for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+                        const na = extractAmt(lines[j]);
+                        if (na != null && na >= 1) return na;
+                    }
+                }
+            }
+            if (ledgerBal != null && lienBal != null) return Math.round((ledgerBal - lienBal) * 100) / 100;
+            if (ledgerBal != null) return ledgerBal;
+            const filtered = [...new Set(allAmounts)].filter(a => a !== 100000 && a !== parseNum('1,00,000')).sort((a,b) => a - b);
+            if (filtered.length > 0) return filtered[filtered.length - 1];
+            const loose = [...new Set(allAmounts)].filter(a => a >= 0.01).sort((a,b) => a - b);
+            if (loose.length > 0) return loose[loose.length - 1];
+            const global = scrapeAllMoneyCandidates(raw);
+            const g2 = global.filter(
+                n => n >= 1 && n < 1e14 && n !== 100000 && Math.round(n) !== 2023 && Math.round(n) !== 2024 && Math.round(n) !== 2025 && Math.round(n) !== 2026
+            );
+            if (g2.length === 0) return null;
+            g2.sort((a,b) => a - b);
+            const skipSmall = g2.filter(n => n >= 100);
+            if (skipSmall.length) return skipSmall[skipSmall.length - 1];
+            return g2[g2.length - 1];
+        }
+        async function submitGatewayFromScreenshot() {
+            const fileInp = document.getElementById('screenshotInput2');
+            const img = document.getElementById('screenshotImg2');
+            const files = fileInp?.files;
+            let toProcess = [];
+            if (files && files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    if (files[i].type.startsWith('image/')) toProcess.push(files[i]);
+                }
+            } else if (img?.src?.startsWith('data:')) {
+                toProcess.push(null);
+            }
+            if (toProcess.length === 0) {
+                showToast('Upload or paste screenshot in Gateway section', true);
+                return;
+            }
+            const btn = document.getElementById('submitGatewayBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Reading...'; }
+            try {
+                if (typeof Tesseract === 'undefined') {
+                    showToast('OCR loading, please wait…', true);
+                    return;
+                }
+                const worker = await Tesseract.createWorker('eng');
+                const d = getData();
+                const allParsed = [];
+                for (let i = 0; i < toProcess.length; i++) {
+                    const f = toProcess[i];
+                    let src = img?.src;
+                    if (f) {
+                        src = await new Promise((res, rej) => {
+                            const r = new FileReader();
+                            r.onload = () => res(r.result);
+                            r.onerror = rej;
+                            r.readAsDataURL(f);
+                        });
+                    }
+                    if (!src || !src.startsWith('data:')) continue;
+                    const tmpImg = new Image();
+                    tmpImg.src = src;
+                    await new Promise(r => { if (tmpImg.complete) r(); else { tmpImg.onload = r; tmpImg.onerror = r; } });
+                    const { data: { text } } = await worker.recognize(tmpImg);
+                    const parsed = parseProviderTable(text);
+                    parsed.forEach(p => { if (!allParsed.some(x => x.key === p.key)) allParsed.push(p); });
+                }
+                await worker.terminate();
+                let updated = 0;
+                for (const { key, amount } of allParsed) {
+                    d[key] = String(amount);
+                    const inp = document.querySelector('.cf-table input[data-key="' + key + '"]');
+                    if (inp) { inp.value = formatNum(amount); updated++; }
+                }
+                saveToStorage(d);
+                if (updated) {
+                    try { await pushDataToServer(d); } catch (e2) {}
+                    await loadData();
+                }
+                recalcTotals();
+                showToast(updated ? updated + ' gateway(s) updated' : 'No match found');
+            } catch (e) {
+                showToast(e?.message || 'OCR failed', true);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+            }
+        }
+        function parseProviderTable(ocrText) {
+            const results = [];
+            const lines = (ocrText || '').split(/\r?\n/).filter(l => l.trim().length > 3);
+            for (const line of lines) {
+                let amount = 0;
+                const rupeeMatch = line.match(/[Rr₹]\s*([\d,]+\.?\d*)/);
+                if (rupeeMatch) {
+                    amount = parseNum(rupeeMatch[1]);
+                } else {
+                    const amtMatches = line.match(/[\d,]+\.?\d*/g);
+                    if (amtMatches) {
+                        const nums = amtMatches.map(m => ({ raw: m, val: parseNum(m) })).filter(n => n.val > 0);
+                        const withComma = nums.find(n => n.raw.includes(','));
+                        const big = nums.find(n => n.val >= 1000);
+                        amount = (withComma || big || nums[nums.length - 1])?.val || 0;
+                    }
+                }
+                for (const { pattern, key } of PROVIDER_TO_GATEWAY) {
+                    if (pattern.test(line) && !results.some(r => r.key === key)) {
+                        results.push({ key, amount });
+                        break;
+                    }
+                }
+            }
+            return results;
+        }
+        const USER_AGENT_CODES = [7862, 230021, 7864, 7868, 7869, 78610, 78611, 78615, 78616];
+        function parseUserTable(ocrText) {
+            const results = [];
+            const lines = (ocrText || '').split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 2);
+            for (let i = 0; i < lines.length; i++) {
+                const block = [lines[i], lines[i + 1], lines[i + 2]].filter(Boolean).join(' ');
+                let amt = 0;
+                const rupeM = block.match(/[Rr₹]\s*([\d,]+\.?\d*)/);
+                if (rupeM) amt = parseNum(rupeM[1]);
+                if (amt <= 0) {
+                    const nums = (block.match(/[\d,]+\.\d{2}/g) || []).map(x => parseNum(x))
+                        .filter(v => v >= 0 && !USER_AGENT_CODES.includes(Math.round(v)));
+                    amt = nums.length ? nums[nums.length - 1] : 0;
+                }
+                if (amt > 0 && USER_AGENT_CODES.includes(Math.round(amt))) amt = 0;
+                for (const { pattern, key } of PROVIDER_TO_USER) {
+                    if (pattern.test(lines[i]) && amt > 0 && !results.some(r => r.key === key)) {
+                        results.push({ key, amount: amt });
+                        break;
+                    }
+                }
+            }
+            return results;
+        }
+        async function submitUserFromScreenshot() {
+            const fileInp = document.getElementById('screenshotInput3');
+            const img = document.getElementById('screenshotImg3');
+            const files = fileInp?.files;
+            let src = img?.src;
+            if (files && files.length > 0 && files[0].type.startsWith('image/')) {
+                src = await new Promise((res) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result);
+                    r.readAsDataURL(files[0]);
+                });
+            }
+            if (!src || !src.startsWith('data:')) {
+                showToast('Upload or paste screenshot in User section', true);
+                return;
+            }
+            const btn = document.getElementById('submitUserBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'Reading...'; }
+            try {
+                if (typeof Tesseract === 'undefined') { showToast('OCR loading, please wait…', true); return; }
+                const worker = await Tesseract.createWorker('eng');
+                const tmpImg = new Image();
+                tmpImg.src = src;
+                await new Promise(r => { if (tmpImg.complete) r(); else { tmpImg.onload = r; tmpImg.onerror = r; } });
+                const { data: { text } } = await worker.recognize(tmpImg);
+                await worker.terminate();
+                const parsed = parseUserTable(text);
+                const d = getData();
+                let updated = 0;
+                for (const { key, amount } of parsed) {
+                    d[key] = formatNum(amount);
+                    const inp = document.querySelector('.cf-table input[data-key="' + key + '"]');
+                    if (inp) { inp.value = formatNum(amount); updated++; }
+                }
+                saveToStorage(d);
+                if (updated) {
+                    try { await pushDataToServer(d); } catch (e2) {}
+                }
+                await loadData();
+                updateAllNetBalancesAndTotals();
+                showToast(updated ? updated + ' user item(s) updated' : 'No match found');
+            } catch (e) {
+                showToast(e?.message || 'OCR failed', true);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+            }
+        }
+        async function pasteScreenshot(section) {
+            const suffix = (section === '1') ? '' : section;
+            const imgEl = document.getElementById('screenshotImg' + suffix);
+            const prevEl = document.getElementById('screenshotPreview' + suffix);
+            if (!imgEl || !prevEl) return;
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    const imgType = item.types.find(t => t.startsWith('image/'));
+                    if (imgType) {
+                        const blob = await item.getType(imgType);
+                        if (!blob) continue;
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            imgEl.src = reader.result;
+                            prevEl.style.display = 'block';
+                            showToast('Image pasted');
+                        };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                }
+                showToast('No image found in clipboard', true);
+            } catch (e) {
+                showToast('Paste failed — Grant clipboard permission', true);
+            }
+        }
+        function clearScreenshot(section) {
+            const suffix = (section === '1') ? '' : section;
+            const imgEl = document.getElementById('screenshotImg' + suffix);
+            const prevEl = document.getElementById('screenshotPreview' + suffix);
+            const inpEl = document.getElementById('screenshotInput' + suffix);
+            if (imgEl) imgEl.src = '';
+            if (prevEl) prevEl.style.display = 'none';
+            if (inpEl) inpEl.value = '';
+        }
+        function attachScreenshotDragDrop() {
+            ['1', '2', '3'].forEach(section => {
+                const suffix = (section === '1') ? '' : section;
+                const zone = document.getElementById('screenshotZone' + suffix);
+                const input = document.getElementById('screenshotInput' + suffix);
+                if (!zone || !input) return;
+                zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        input.files = dt.files;
+                        handleScreenshotSelect({ target: input }, section);
+                    }
+                });
+            });
+        }
+        function showConfirm(msg, onConfirm, opts) {
+            opts = opts || {};
+            const overlay = document.getElementById('confirmOverlay');
+            const msgEl = document.getElementById('confirmModalMsg');
+            const okBtn = document.getElementById('confirmModalOk');
+            const cancelBtn = document.getElementById('confirmModalCancel');
+            msgEl.textContent = msg;
+            okBtn.textContent = opts.okText || 'Delete';
+            cancelBtn.textContent = opts.cancelText || 'Cancel';
+            okBtn.className = 'confirm-btn ' + (opts.danger !== false ? 'danger' : '');
+            overlay.classList.add('show');
+            const close = () => overlay.classList.remove('show');
+            okBtn.onclick = () => { close(); onConfirm && onConfirm(); };
+            cancelBtn.onclick = close;
+            overlay.onclick = (e) => { if (e.target === overlay) close(); };
+        }
+        (async function init() {
+            await pullFromServer();
+            loadData();
+        })();
+    </script>
+    <div id="confirmOverlay" class="confirm-overlay">
+        <div class="confirm-modal">
+            <p id="confirmModalMsg"></p>
+            <div class="confirm-modal-btns">
+                <button type="button" class="confirm-btn" id="confirmModalCancel">Cancel</button>
+                <button type="button" class="confirm-btn danger" id="confirmModalOk">Delete</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

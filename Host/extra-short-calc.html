@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#7c1d4a">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>Extra / Short</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="/styles.css?v=4" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
+    <style>
+        :root {
+            --primary: #be185d;
+            --primary-light: #ec4899;
+            --primary-dark: #5c1538;
+            --success: #059669;
+            --success-light: #34d399;
+            --danger: #dc2626;
+            --neutral-50: #f8fafc;
+            --neutral-100: #f1f5f9;
+            --neutral-200: #e2e8f0;
+            --neutral-600: #64748b;
+            --neutral-700: #475569;
+            --neutral-800: #1e293b;
+            --radius: 14px;
+            --shadow: 0 4px 24px rgba(92, 21, 56, 0.07), 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-hover: 0 12px 36px rgba(124, 29, 74, 0.1), 0 4px 12px rgba(0,0,0,0.05);
+        }
+        header { text-align: center; margin-bottom: 1.5rem; }
+        h1 { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.4rem; }
+        .subtitle { font-size: 0.9rem; color: var(--neutral-600); }
+        .date-badge {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: rgba(255,255,255,0.95);
+            border-radius: 999px;
+            font-size: 0.82rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border: 1px solid rgba(251,113,133,0.2);
+            box-shadow: 0 2px 8px rgba(251,113,133,0.08);
+        }
+        .cards-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        @media (max-width: 1024px) {
+            .cards-row { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .cards-row { gap: 1.25rem; }
+        }
+        @media (max-width: 640px) {
+            .cards-row { grid-template-columns: 1fr; gap: 1rem; }
+            .calc-table { font-size: 0.85rem; }
+            .calc-table th, .calc-table td { padding: 0.5rem 0.65rem; }
+            .calc-card { padding: 1rem 1rem; }
+            .calc-card h2 { font-size: 0.95rem; padding: 0.5rem 0.65rem; }
+            .action-row { gap: 0.4rem; margin-top: 1rem; }
+            .action-btn { padding: 0.45rem 0.85rem; font-size: 0.82rem; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 1rem 0.75rem 1.5rem; }
+            h1 { font-size: 1.25rem; }
+            .calc-table { font-size: 0.82rem; }
+            .calc-table th, .calc-table td { padding: 0.45rem 0.55rem; }
+            .result-box { padding: 1.25rem 1rem; gap: 0.6rem; }
+            .result-formula { font-size: 0.9rem; }
+            .result-value { font-size: 1.75rem; }
+            .result-label { font-size: 0.8rem; }
+            .action-btn { min-height: 46px; }
+        }
+        @media (max-width: 360px) {
+            .nav-btn .icon { display: none; }
+            .nav-btn { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
+            .title-icon { display: none; }
+            .calc-card h2 .card-icon { display: none; }
+        }
+        .calc-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 1.25rem 1.25rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--neutral-200);
+            transition: all 0.25s ease;
+            min-width: 0;
+        }
+        .calc-card:hover { box-shadow: var(--shadow-hover); }
+        .calc-card h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            padding: 0.5rem 0.75rem;
+            background: linear-gradient(135deg, rgba(251,113,133,0.06) 0%, rgba(251,207,232,0.12) 100%);
+            border-radius: var(--radius);
+            border-bottom: none;
+            letter-spacing: 0.02em;
+        }
+        .calc-card h2 .sub { font-size: 0.8rem; font-weight: 500; color: var(--neutral-600); }
+        .calc-card h2 .card-icon { font-size: 1.1rem; margin-right: 0.4rem; vertical-align: -0.08em; }
+        .calc-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius);
+            border: 1px solid rgba(148,163,184,0.4);
+        }
+        .calc-table {
+            width: 100%;
+            min-width: 200px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .calc-table th {
+            text-align: left;
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 0.55rem 0.75rem;
+            background: linear-gradient(135deg, #be185d, #831843);
+            border-bottom: none;
+        }
+        .calc-table th.col-amt { text-align: right; }
+        .calc-table td {
+            padding: 0.55rem 0.75rem;
+            border-top: 1px solid rgba(148,163,184,0.35);
+        }
+        .calc-table tbody tr:hover:not(.total-row) { background: var(--neutral-50); transition: background 0.15s ease; }
+        .calc-table .col-name { font-weight: 500; color: var(--neutral-800); }
+        .calc-table .col-amt {
+            text-align: right;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .calc-table tr.total-row td {
+            border-top: 2px solid rgba(148,163,184,0.5);
+            padding: 0.65rem 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            background: linear-gradient(135deg, rgba(253,242,248,0.95) 0%, rgba(251,207,232,0.5) 100%);
+            color: var(--primary-dark);
+        }
+        .calc-table tr.total-row .col-amt { font-size: 1.05rem; }
+        .calc-table .empty-msg { color: var(--neutral-600); font-style: italic; padding: 0.75rem 0.75rem; }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neutral-200), transparent);
+            margin: 1.25rem 0;
+        }
+        .result-box {
+            border-radius: var(--radius);
+            padding: 1.75rem 1.5rem;
+            margin-top: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 2px solid rgba(251,113,133,0.25);
+            background: linear-gradient(135deg, rgba(251,113,133,0.06) 0%, rgba(251,207,232,0.12) 100%);
+            transition: all 0.25s ease;
+            gap: 0.75rem;
+        }
+        .result-box.extra {
+            background: linear-gradient(135deg, rgba(5,150,105,0.12) 0%, rgba(52,211,153,0.18) 100%);
+            border-color: rgba(5,150,105,0.5);
+            box-shadow: 0 4px 20px rgba(5,150,105,0.15);
+        }
+        .result-box.shortage {
+            background: linear-gradient(135deg, rgba(220,38,38,0.1) 0%, rgba(248,113,113,0.15) 100%);
+            border-color: rgba(220,38,38,0.5);
+            box-shadow: 0 4px 20px rgba(220,38,38,0.15);
+        }
+        .result-box.balanced {
+            background: linear-gradient(135deg, rgba(248,250,252,0.9) 0%, rgba(241,245,249,0.95) 100%);
+            border-color: rgba(148,163,184,0.4);
+        }
+        .result-formula {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--neutral-700);
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            word-break: break-word;
+        }
+        .result-box.extra .result-formula { color: #047857; }
+        .result-box.shortage .result-formula { color: #b91c1c; }
+        .result-value {
+            font-size: clamp(1.45rem, 5vw + 0.5rem, 2.35rem);
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .result-box.extra .result-value { color: #047857; }
+        .result-box.shortage .result-value { color: var(--danger); }
+        .result-box.balanced .result-value { color: var(--neutral-800); }
+        .result-label {
+            font-size: 0.9rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+        }
+        .result-box.extra .result-label { color: #047857; }
+        .result-box.shortage .result-label { color: var(--danger); }
+        .result-box.balanced .result-label { color: var(--neutral-600); }
+        .result-words {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--neutral-700);
+            text-align: center;
+            font-style: italic;
+            margin-top: 0.25rem;
+        }
+        .result-box.extra .result-words { color: #047857; }
+        .result-box.shortage .result-words { color: #b91c1c; }
+        .action-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 148px), 1fr));
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1.25rem;
+            align-items: stretch;
+        }
+        @media (min-width: 640px) {
+            .action-row { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; }
+        }
+        .action-btn {
+            padding: 0.5rem 0.85rem;
+            min-height: 44px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: 1px solid var(--neutral-200);
+            background: var(--neutral-50);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: var(--neutral-700);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+        .action-btn:hover { background: var(--neutral-100); color: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .action-btn.primary:hover { box-shadow: 0 4px 12px rgba(251,113,133,0.25); }
+        .action-btn .btn-icon { font-size: 1rem; }
+        .back-link { display: inline-block; margin-bottom: 0.5rem; color: var(--neutral-600); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+        .back-link:hover { color: var(--primary-dark); }
+        .title-icon { margin-right: 0.35rem; vertical-align: -0.05em; }
+        .bank-card h2 { background: linear-gradient(135deg, rgba(34,197,94,0.06) 0%, rgba(134,239,172,0.12) 100%) !important; }
+        .api-card h2 { background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(147,197,253,0.12) 100%) !important; }
+        @media print {
+            .top-bar, .action-row, .back-link { display: none !important; }
+            body { background: #fff; }
+            .calc-card { box-shadow: none; border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-bar">
+        <span class="logo">Cash Flow</span>
+        <div class="nav-wrap">
+            <a href="/" class="nav-btn"><span class="icon">💰</span> Cash Flow</a>
+            <a href="/extra-short" class="nav-btn primary"><span class="icon">📊</span> Extra/Short</a>
+        </div>
+    </nav>
+    <div class="container wide">
+        <header>
+            <h1><span class="title-icon">📊</span> Extra / Short Calculation</h1>
+            <p class="subtitle">Compare Bank + API balance vs Users Total — see Extra or Shortage amount</p>
+            <span class="date-badge" id="dateDisplay"></span>
+        </header>
+
+        <div class="cards-row">
+            <div class="calc-card">
+                <h2><span class="card-icon">👥</span> Users Total <span class="sub">(Now Usable Balance)</span></h2>
+                <div class="calc-table-wrap">
+                    <table class="calc-table" id="usersTable">
+                        <thead><tr><th>User</th><th class="col-amt">Amount</th></tr></thead>
+                        <tbody id="usersList"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="calc-card bank-card">
+                <h2><span class="card-icon">🏦</span> Bank</h2>
+                <div class="calc-table-wrap">
+                    <table class="calc-table" id="bankTable">
+                        <thead><tr><th>Bank</th><th class="col-amt">Net Balance</th></tr></thead>
+                        <tbody id="bankList"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="calc-card api-card">
+                <h2><span class="card-icon">🔌</span> API Details</h2>
+                <div class="calc-table-wrap">
+                    <table class="calc-table" id="apiTable">
+                        <thead><tr><th>API</th><th class="col-amt">Amount</th></tr></thead>
+                        <tbody id="apiList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-formula" id="resultFormula">—</div>
+            <div class="result-value" id="resultValue">₹0</div>
+            <div class="result-words" id="resultWords"></div>
+            <div class="result-label" id="resultLabel">—</div>
+        </div>
+
+        <div class="action-row">
+            <a href="/" class="action-btn primary"><span class="btn-icon">✏️</span> Edit Cash Flow</a>
+            <button type="button" class="action-btn" onclick="downloadCSV()" title="Download as CSV"><span class="btn-icon">📥</span> Download CSV</button>
+            <button type="button" class="action-btn" onclick="window.print()"><span class="btn-icon">🖨️</span> Print</button>
+            <button type="button" class="action-btn" onclick="captureScreenshot()" title="Download screenshot as PNG"><span class="btn-icon">📷</span> Capture SS</button>
+            <button type="button" class="action-btn" onclick="shareScreenshot()" title="Share screenshot to Telegram, WhatsApp, etc."><span class="btn-icon">📤</span> Share</button>
+            <button type="button" class="action-btn" onclick="(async function(){ await fetchApiSummary(); refreshCalc(); })()"><span class="btn-icon">🔄</span> Refresh</button>
+        </div>
+    </div>
+    <script>
+        const STORAGE_KEY = 'cashFlowSummary';
+        const USER_ITEMS = [
+            { key: 'gatewaytest', name: 'Gateway Test', short: 'Gateway Test' },
+            { key: 'royal_pay', name: 'Royal Pay', short: 'Paysoon' },
+            { key: 'gmr_international', name: 'GMR International', short: 'GMR' },
+            { key: 'binance_autopay', name: 'Binance Autopay', short: 'Binance' },
+            { key: 'minex', name: 'Minex', short: 'Minex' },
+            { key: 'einpays', name: 'Einpays', short: 'Einpays' },
+            { key: 'flavourfimly', name: 'Flavour Family', short: 'Flavour Family' },
+            { key: 'atps_global', name: 'ATPS Global', short: 'ATPS' },
+            { key: 'zora_fintech', name: 'Zora Fintech', short: 'Zora' }
+        ];
+        const DEFAULT_USEABLE_KEYS = ['royal_pay', 'gmr_international', 'einpays'];
+        const BANK_OPTS = [
+            { key: '8a', name: 'Lexiroof Union Bank', short: 'L-Union' },
+            { key: '8b', name: 'Lexiroof SBI', short: 'L-SBI' },
+            { key: '8c', name: 'Lexiroof Axis', short: 'L-Axis' },
+            { key: '8d', name: 'Lexiroof Indusind', short: 'L-Indus' },
+            { key: '8e', name: 'Lexiroof Kotak', short: 'L-Kotak' },
+            { key: '8f', name: 'Lexiroof HDFC', short: 'L-HDFC' },
+            { key: '8g', name: 'Epocketpay Axis', short: 'E-Axis' },
+            { key: '8h', name: 'Epocketpay BOI', short: 'E-BOI' },
+            { key: '8i', name: 'DIG Indusind', short: 'DIG' }
+        ];
+        const GATEWAY_OPTS = [
+            { key: '1b', name: 'Pocketpay Busybox' },
+            { key: '2b', name: 'Lexi Busybox' },
+            { key: '3b', name: 'PocketPay Nixa' },
+            { key: '4b', name: 'Lexi Nixa' },
+            { key: '5', name: 'Finkin Lexi' },
+            { key: '6', name: 'Finkin PocketPay' },
+            { key: '7', name: 'Finkin Dig' }
+        ];
+        const BANKS_FOR_CALC = ['8d', '8f', '8g', '8h'];
+        function defaultMaint(amt) {
+            const a = parseNum(amt);
+            return a >= 100000 ? '1,00,000' : (a > 0 ? formatNum(a) : '0');
+        }
+        function getBankNetBalance(d, key) {
+            const amt = parseNum(d[key]);
+            const hasNote = d[key + '_note'] !== undefined && d[key + '_note'] !== '' && !(amt > 0 && (d[key + '_note'] === '0' || d[key + '_note'] === 0));
+            const note = hasNote ? d[key + '_note'] : defaultMaint(amt);
+            const maintNum = parseNum(note);
+            return Math.round((amt - maintNum) * 100) / 100;
+        }
+        function parseNum(val) {
+            if (val == null || val === undefined) return 0;
+            let s = String(val).trim().replace(/\s/g, '').replace(/,/g, '');
+            if (!s) return 0;
+            if (/^\d{1,}\.\d{3}$/.test(s)) s = s.replace('.', '');
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
+        }
+        function formatNum(n) {
+            if (n === null || n === undefined || n === '') return '0';
+            const val = typeof n === 'string' ? parseNum(n) : Number(n);
+            if (isNaN(val)) return '0';
+            return val.toFixed(2);
+        }
+        function formatRupeeIndian(n) {
+            const s = String(Math.floor(Math.abs(n)));
+            if (s.length <= 3) return s;
+            const last3 = s.slice(-3);
+            const rest = s.slice(0, -3);
+            const formatted = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + last3;
+            return formatted;
+        }
+        function formatRupee(n) {
+            const val = typeof n === 'string' ? parseNum(n) : Number(n);
+            if (isNaN(val) || val === 0) return '₹0.00';
+            const fixed = Math.abs(val).toFixed(2);
+            const parts = fixed.split('.');
+            const intPart = formatRupeeIndian(parts[0]);
+            const str = '₹' + intPart + '.' + parts[1];
+            return val < 0 ? '−' + str : str;
+        }
+        function amountToWords(n) {
+            const val = Math.abs(parseNum(n));
+            const intPart = Math.floor(val);
+            const decPart = Math.round((val - intPart) * 100);
+            const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+            const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            function toHundreds(num) {
+                if (num === 0) return '';
+                let s = '';
+                if (num >= 100) { s += ones[Math.floor(num / 100)] + ' Hundred '; num %= 100; }
+                if (num >= 20) { s += tens[Math.floor(num / 10)] + ' '; num %= 10; }
+                else if (num >= 10) { return s.trim() + ' ' + teens[num - 10]; }
+                if (num > 0) s += ones[num];
+                return s.trim();
+            }
+            if (intPart === 0 && decPart === 0) return '';
+            let words = '';
+            let x = intPart;
+            if (x >= 10000000) { words += toHundreds(Math.floor(x / 10000000)) + ' Crore '; x %= 10000000; }
+            if (x >= 100000) { words += toHundreds(Math.floor(x / 100000)) + ' Lakh '; x %= 100000; }
+            if (x >= 1000) { words += toHundreds(Math.floor(x / 1000)) + ' Thousand '; x %= 1000; }
+            if (x > 0) words += toHundreds(x) + ' ';
+            words = words.trim();
+            words += words ? ' Rupees' : '';
+            if (decPart > 0) words += (words ? ' And ' : '') + toHundreds(decPart) + ' Paise';
+            else if (words) words += ' Only';
+            return words.trim() || '';
+        }
+        function getData() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            } catch (e) { return {}; }
+        }
+        async function fetchApiSummary() {}
+        function refreshCalc() {
+            const d = getData();
+            let usersTotal = 0;
+            let bankApiTotal = 0;
+
+            const usersRows = [];
+            USER_ITEMS.forEach(o => {
+                const amt = parseNum(d[o.key]);
+                const useableOn = d[o.key + '_useable_on'] === undefined ? DEFAULT_USEABLE_KEYS.includes(o.key) : (d[o.key + '_useable_on'] === true || d[o.key + '_useable_on'] === 'true');
+                const useable = useableOn ? ((d[o.key + '_usable'] !== undefined && d[o.key + '_usable'] !== '') ? parseNum(d[o.key + '_usable']) : amt) : 0;
+                usersTotal += useable;
+                if (useable !== 0) usersRows.push({ name: o.name, amt: useable });
+            });
+            const extraAmt = parseNum(d.extra);
+            const extraUseableOn = d.extra_useable_on === true || d.extra_useable_on === 'true';
+            const extraUseable = extraUseableOn ? ((d.extra_usable !== undefined && d.extra_usable !== '') ? parseNum(d.extra_usable) : extraAmt) : 0;
+            usersTotal += extraUseable;
+            if (extraUseable !== 0) usersRows.push({ name: 'Gear', amt: extraUseable });
+
+            let usersHtml = usersRows.length ? usersRows.map(r => '<tr><td class="col-name">' + r.name + '</td><td class="col-amt">' + formatRupee(r.amt) + '</td></tr>').join('') : '<tr><td colspan="2" class="empty-msg">No usable balance</td></tr>';
+            usersHtml += '<tr class="total-row"><td class="col-name">Total</td><td class="col-amt" id="usersTotal">' + formatRupee(usersTotal) + '</td></tr>';
+            document.getElementById('usersList').innerHTML = usersHtml;
+
+            const bankRows = [];
+            BANKS_FOR_CALC.forEach(key => {
+                const bank = BANK_OPTS.find(b => b.key === key);
+                if (bank) {
+                    const netBal = getBankNetBalance(d, key);
+                    bankApiTotal += netBal;
+                    if (netBal !== 0) bankRows.push({ name: bank.name, amt: netBal });
+                }
+            });
+            let bankHtml = bankRows.length ? bankRows.map(r => '<tr><td class="col-name">' + r.name + '</td><td class="col-amt">' + formatRupee(r.amt) + '</td></tr>').join('') : '<tr><td colspan="2" class="empty-msg">No bank data</td></tr>';
+            bankHtml += '<tr class="total-row"><td class="col-name">Total</td><td class="col-amt">' + formatRupee(bankRows.reduce((s,r) => s + r.amt, 0)) + '</td></tr>';
+            document.getElementById('bankList').innerHTML = bankHtml;
+
+            const apiRows = [];
+            GATEWAY_OPTS.forEach(m => {
+                const amt = parseNum(d[m.key]);
+                bankApiTotal += amt;
+                apiRows.push({ name: m.name, amt: amt });
+            });
+            (d.custom_gateway || []).forEach(c => {
+                const amt = parseNum(c.amount);
+                bankApiTotal += amt;
+                apiRows.push({ name: c.name || 'Custom Gateway', amt: amt });
+            });
+            let apiTotal = apiRows.reduce((s, r) => s + r.amt, 0);
+            const apiRowsToShow = apiRows.filter(r => r.amt !== 0);
+            let apiHtml = apiRowsToShow.length ? apiRowsToShow.map(r => '<tr><td class="col-name">' + r.name + '</td><td class="col-amt">' + formatRupee(r.amt) + '</td></tr>').join('') : '<tr><td colspan="2" class="empty-msg">No API balance</td></tr>';
+            apiHtml += '<tr class="total-row"><td class="col-name">API Balance</td><td class="col-amt">' + formatRupee(apiTotal) + '</td></tr>';
+            document.getElementById('apiList').innerHTML = apiHtml;
+
+            const diff = Math.round((bankApiTotal - usersTotal) * 100) / 100;
+            const resultBox = document.getElementById('resultBox');
+            const resultFormula = document.getElementById('resultFormula');
+            const resultValue = document.getElementById('resultValue');
+            const resultWords = document.getElementById('resultWords');
+            const resultLabel = document.getElementById('resultLabel');
+
+            resultFormula.textContent = '(Bank + API Total) ' + formatRupee(bankApiTotal) + ' − ' + formatRupee(usersTotal) + ' = ';
+            resultValue.textContent = (diff >= 0 ? '' : '−') + formatRupee(Math.abs(diff));
+            resultWords.textContent = diff !== 0 ? amountToWords(Math.abs(diff)) : '';
+            resultBox.classList.remove('extra', 'shortage', 'balanced');
+            if (diff > 0) {
+                resultBox.classList.add('extra');
+                resultLabel.textContent = '✓ Extra Balance';
+            } else if (diff < 0) {
+                resultBox.classList.add('shortage');
+                resultLabel.textContent = '⚠ Shortage';
+            } else {
+                resultBox.classList.add('balanced');
+                resultLabel.textContent = '✓ Balanced';
+            }
+        }
+        function downloadCSV() {
+            const d = getData();
+            const date = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            let usersTotal = 0, bankApiTotal = 0;
+            const userRows = [];
+            USER_ITEMS.forEach(o => {
+                const amt = parseNum(d[o.key]);
+                const useableOn = d[o.key + '_useable_on'] === undefined ? DEFAULT_USEABLE_KEYS.includes(o.key) : (d[o.key + '_useable_on'] === true || d[o.key + '_useable_on'] === 'true');
+                const useable = useableOn ? ((d[o.key + '_usable'] !== undefined && d[o.key + '_usable'] !== '') ? parseNum(d[o.key + '_usable']) : amt) : 0;
+                usersTotal += useable;
+                if (useable !== 0) userRows.push([o.name, useable]);
+            });
+            const extraUseableOn = d.extra_useable_on === true || d.extra_useable_on === 'true';
+            const extraUseable = extraUseableOn ? ((d.extra_usable !== undefined && d.extra_usable !== '') ? parseNum(d.extra_usable) : parseNum(d.extra)) : 0;
+            usersTotal += extraUseable;
+            if (extraUseable !== 0) userRows.push(['Gear', extraUseable]);
+
+            const bankRows = [];
+            BANKS_FOR_CALC.forEach(key => {
+                const bank = BANK_OPTS.find(b => b.key === key);
+                if (bank) {
+                    const netBal = getBankNetBalance(d, key);
+                    bankApiTotal += netBal;
+                    if (netBal !== 0) bankRows.push([bank.name, netBal]);
+                }
+            });
+            const apiRows = [];
+            GATEWAY_OPTS.forEach(m => {
+                const amt = parseNum(d[m.key]);
+                bankApiTotal += amt;
+                if (amt !== 0) apiRows.push([m.name, amt]);
+            });
+            (d.custom_gateway || []).forEach(c => {
+                const amt = parseNum(c.amount);
+                bankApiTotal += amt;
+                if (amt !== 0) apiRows.push([c.name || 'Custom Gateway', amt]);
+            });
+
+            const diff = bankApiTotal - usersTotal;
+            const lines = [
+                ['Extra / Short Calculation', date],
+                [],
+                ['Users Total (Now Usable Balance)', 'Amount'],
+                ...userRows.map(r => [r[0], r[1].toFixed(2)]),
+                ['Total', usersTotal.toFixed(2)],
+                [],
+                ['Bank', 'Net Balance'],
+                ...bankRows.map(r => [r[0], r[1].toFixed(2)]),
+                ['Bank Total', bankRows.reduce((s,r) => s + r[1], 0).toFixed(2)],
+                [],
+                ['API Details', 'Amount'],
+                ...apiRows.map(r => [r[0], r[1].toFixed(2)]),
+                ['API Balance', apiRows.reduce((s,r) => s + r[1], 0).toFixed(2)],
+                [],
+                ['Bank + API Total', bankApiTotal.toFixed(2)],
+                [],
+                ['Result', diff > 0 ? 'Extra: ' + diff.toFixed(2) : (diff < 0 ? 'Shortage: ' + Math.abs(diff).toFixed(2) : 'Balanced')]
+            ];
+            const csv = lines.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'extra-short-calc-' + new Date().toISOString().slice(0,10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        async function captureScreenshot() {
+            const el = document.querySelector('.container');
+            if (!el || typeof htmlToImage === 'undefined') {
+                alert('Screenshot not available. Use Print (Ctrl+P) to save as PDF.');
+                return;
+            }
+            try {
+                const dataUrl = await htmlToImage.toPng(el, { pixelRatio: 1, cacheBust: true });
+                const a = document.createElement('a');
+                a.href = dataUrl;
+                a.download = 'extra-short-calc-' + new Date().toISOString().slice(0,10) + '.png';
+                a.click();
+            } catch (e) {
+                try {
+                    const dataUrl = await htmlToImage.toPng(el, { pixelRatio: 1, cacheBust: true });
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = 'extra-short-calc-' + new Date().toISOString().slice(0,10) + '.png';
+                    a.click();
+                } catch (e2) {
+                    alert('Capture failed. Use Print (Ctrl+P) or take a manual screenshot.');
+                }
+            }
+        }
+        async function shareScreenshot() {
+            const el = document.querySelector('.container');
+            if (!el || typeof htmlToImage === 'undefined') {
+                alert('Share not available. Use Capture SS first, then share the downloaded image.');
+                return;
+            }
+            try {
+                const dataUrl = await htmlToImage.toPng(el, { pixelRatio: 1, cacheBust: true });
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                const file = new File([blob], 'extra-short-calc-' + new Date().toISOString().slice(0,10) + '.png', { type: 'image/png' });
+                if (navigator.share) {
+                    await navigator.share({ files: [file], title: 'Extra Short Calc', text: 'Extra Short Calc - ' + new Date().toLocaleDateString('en-IN') });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = dataUrl;
+                    a.download = file.name;
+                    a.click();
+                    alert('Screenshot saved! Share it via Telegram or WhatsApp.');
+                }
+            } catch (e) {
+                try {
+                    await captureScreenshot();
+                    alert('Screenshot downloaded. Share it manually via Telegram or WhatsApp.');
+                } catch (_) {
+                    alert('Share failed. Use Capture SS or Print.');
+                }
+            }
+        }
+        document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+        });
+        (async function init() {
+            await fetchApiSummary();
+            refreshCalc();
+        })();
+    </script>
+</body>
+</html>
